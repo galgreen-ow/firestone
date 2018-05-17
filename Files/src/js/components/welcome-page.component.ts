@@ -103,6 +103,13 @@ export class WelcomePageComponent {
 					}
 				})
 			}
+			else {
+				overwolf.windows.getCurrentWindow((result) => {
+					if (result.status === "success"){
+						overwolf.windows.close(result.window.id);
+					}
+				});
+			}
 		});
 		// overwolf.windows.getCurrentWindow((result) => {
 		// 	if (result.status === "success") {

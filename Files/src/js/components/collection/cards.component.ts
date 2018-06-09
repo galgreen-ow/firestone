@@ -7,7 +7,7 @@ import * as Raven from 'raven-js';
 import { AllCardsService } from '../../services/all-cards.service';
 
 import { Card } from '../../models/card';
-import { Set, SetCard, MissingCard } from '../../models/set';
+import { Set, SetCard } from '../../models/set';
 
 declare var overwolf: any;
 

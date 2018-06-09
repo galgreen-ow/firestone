@@ -1,4 +1,4 @@
-import { Component, NgZone, AfterViewInit } from '@angular/core';
+import { Component, NgZone, OnInit, AfterViewInit } from '@angular/core';
 
 import * as Raven from 'raven-js';
 
@@ -8,6 +8,8 @@ import { Events } from '../services/events.service';
 
 import { Card } from '../models/card';
 import { Set, SetCard } from '../models/set';
+
+const HEARTHSTONE_GAME_ID = 9898;
 
 declare var overwolf: any;
 declare var ga: any;
@@ -53,7 +55,7 @@ declare var OwAd: any;
 	`,
 })
 // 7.1.1.17994
-export class CollectionComponent implements AfterViewInit {
+export class CollectionComponent implements OnInit, AfterViewInit {
 
 	private _menuDisplayType = 'menu';
 	private _selectedView = 'sets';
@@ -72,7 +74,9 @@ export class CollectionComponent implements AfterViewInit {
 		private collectionManager: CollectionManager,
 		private ngZone: NgZone) {
 		ga('send', 'event', 'collection', 'show');
+	}
 
+	ngOnInit() {
 		overwolf.windows.onStateChanged.addListener((message) => {
 			if (message.window_name != "CollectionWindow") {
 				return;
@@ -158,9 +162,9 @@ export class CollectionComponent implements AfterViewInit {
 				this.ngZone.run(() => {
 					this.fullCardId = message.content;
 					this._selectedView = 'card-details';
-					console.log('setting fullCardId', this.fullCardId);
+					// console.log('setting fullCardId', this.fullCardId);
 					overwolf.windows.restore(this.windowId, (result) => {
-						console.log('collection window restored');
+						// console.log('collection window restored');
 					});
 				})
 			}
@@ -168,7 +172,7 @@ export class CollectionComponent implements AfterViewInit {
 	}
 
 	ngAfterViewInit() {
-		this.loadAds();
+		console.log('after view init');
 	}
 
 	private loadAds() {
@@ -205,8 +209,34 @@ export class CollectionComponent implements AfterViewInit {
 			})
 		})
 
-		set.ownedLimitCollectibleCards = set.allCards.map((card: SetCard) => card.getNumberCollected()).reduce((c1, c2) => c1 + c2, 0);
-		set.ownedLimitCollectiblePremiumCards = set.allCards.map((card: SetCard) => card.getNumberCollectedPremium()).reduce((c1, c2) => c1 + c2, 0);
+		set.ownedLimitCollectibleCards = set.allCards.map((card: SetCard) => SetCard.getNumberCollected(card)).reduce((c1, c2) => c1 + c2, 0);
+		set.ownedLimitCollectiblePremiumCards = set.allCards.map((card: SetCard) => SetCard.getNumberCollectedPremium(card)).reduce((c1, c2) => c1 + c2, 0);
 		console.log('updated set', set);
+	}
+
+	private gameLaunched(gameInfoResult: any): boolean {
+		if (!gameInfoResult) {
+			console.log('No gameInfoResult, returning');
+			return false;
+		}
+
+		if (!gameInfoResult.gameInfo) {
+			console.log('No gameInfoResult.gameInfo, returning');
+			return false;
+		}
+
+		if (!gameInfoResult.gameInfo.isRunning) {
+			console.log('Game not running, returning');
+			return false;
+		}
+
+		// NOTE: we divide by 10 to get the game class id without it's sequence number
+		if (Math.floor(gameInfoResult.gameInfo.id / 10) !== HEARTHSTONE_GAME_ID) {
+			console.log('Not HS, returning');
+			return false;
+		}
+
+		console.log("HS Launched");
+		return true;
 	}
 }

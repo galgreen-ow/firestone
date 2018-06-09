@@ -7,6 +7,7 @@ import { AllCardsService } from '../../services/all-cards.service';
 import { Events } from '../../services/events.service';
 
 import { Card } from '../../models/card';
+import { Collection } from '../../models/collection';
 import { Set, SetCard } from '../../models/set';
 
 declare var overwolf: any;
@@ -71,37 +72,10 @@ export class SetsComponent {
 			return;
 		}
 		this.refreshing = true;
-		this.standardSets = this.cards.getStandardSets();
-		this.wildSets = this.cards.getWildSets();
-		// console.log('sets', this.standardSets, this.wildSets);
+		this.collectionManager.getMergedCollection((collection: Collection) => {
+			this.standardSets = collection.allSets.filter(s => s.standard);
+			this.wildSets = collection.allSets.filter(s => !s.standard);
 
-		this.collectionManager.getCollection((collection: Card[]) => {
-			// Add the number of owned cards on each card in the standard set
-			this.standardSets.forEach((standardSet: Set) => {
-				this.updateSet(collection, standardSet);
-			})
-			this.wildSets.forEach((standardSet: Set) => {
-				this.updateSet(collection, standardSet);
-			})
-			this.refreshing = false;
 		})
-		// console.log('after adding owned cards', this.standardSets);
-	}
-
-	private updateSet(collection: Card[], set: Set) {
-		set.allCards.forEach((card: SetCard) => {
-			let owned = collection.filter((collectionCard: Card) => collectionCard.Id === card.id);
-			owned.forEach((collectionCard: Card) => {
-				if (collectionCard.Premium) {
-					card.ownedPremium = collectionCard.Count;
-				}
-				else {
-					card.ownedNonPremium = collectionCard.Count;
-				}
-			})
-		})
-
-		set.ownedLimitCollectibleCards = set.allCards.map((card: SetCard) => card.getNumberCollected()).reduce((c1, c2) => c1 + c2, 0);
-		set.ownedLimitCollectiblePremiumCards = set.allCards.map((card: SetCard) => card.getNumberCollectedPremium()).reduce((c1, c2) => c1 + c2, 0);
 	}
 }

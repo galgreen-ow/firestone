@@ -4,6 +4,7 @@ import { AngularIndexedDB, IndexDetails } from 'angular2-indexeddb';
 
 import { CardHistory } from '../../models/card-history';
 import { Card } from '../../models/card';
+import { Collection } from '../../models/collection';
 
 declare var OverwolfPlugin: any;
 
@@ -13,10 +14,55 @@ export class IndexedDbService {
 	public dbInit: boolean;
 
 	private db: AngularIndexedDB;
-	private dbInit: boolean;
 
 	constructor(private localStorageService: LocalStorageService) {
 		this.init();
+	}
+
+	public saveMergedCollection(collection: Collection, callback: Function) {
+		// console.log('saving collection', dbCollection);
+		if (!this.dbInit) {
+			setTimeout(() => {
+				console.log('[storage] db isnt initialized, waiting...');
+				this.saveMergedCollection(collection, callback);
+			}, 50);
+			return;
+		}
+
+		console.log('saving merged collection');
+		let dbCollection = {
+			id: 1,
+			collection: collection
+		}
+
+		// console.log('updating collection');
+		this.db.update('mergedcollection', dbCollection).then(
+			(history) => {
+				console.log('merged collection udpated')
+				callback(collection);
+			},
+			(error) => {
+				console.error('could not update collection', error);
+			}
+		);
+	}
+
+	public getMergedCollection(callback: Function) {
+		// console.log('retrieving collection');
+		if (!this.dbInit) {
+			setTimeout(() => {
+				console.log('[storage] db isnt initialized, waiting...');
+				this.getMergedCollection(callback);
+			}, 50);
+			return;
+		}
+
+		console.log('starting load merged collection');
+		this.db.getAll('mergedcollection', null)
+			.then((collection) => {
+				console.log('loaded mergedcollection', collection);
+				callback(collection[0] ? collection[0].collection : null);
+			})
 	}
 
 	public saveCollection(collection: Card[], callback: Function) {
@@ -143,8 +189,8 @@ export class IndexedDbService {
 
 	private init() {
 		console.log('[storage] starting init of indexeddb');
-		this.db = new AngularIndexedDB('hs-collection-db', 1);
-		this.db.openDatabase(1, (evt) => {
+		this.db = new AngularIndexedDB('hs-collection-db', 7);
+		this.db.openDatabase(7, (evt) => {
 			console.log('upgrading db', evt);
 
 			if (evt.oldVersion < 1) {
@@ -159,6 +205,12 @@ export class IndexedDbService {
 				console.log('[storage] upgrade to version 2');
 				let collectionStore = evt.currentTarget.result.createObjectStore(
 					'collection',
+					{ keyPath: "id", autoIncrement: false });
+			}
+			if (evt.oldVersion < 7) {
+				console.log('[storage] upgrade to version 7');
+				let collectionStore = evt.currentTarget.result.createObjectStore(
+					'mergedcollection',
 					{ keyPath: "id", autoIncrement: false });
 			}
 

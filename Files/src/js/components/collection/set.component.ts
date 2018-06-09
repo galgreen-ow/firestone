@@ -3,7 +3,7 @@ import { Component, NgZone, Input, SimpleChanges } from '@angular/core';
 import * as Raven from 'raven-js';
 
 import { Card } from '../../models/card';
-import { Set, SetCard, MissingCard } from '../../models/set';
+import { Set, SetCard } from '../../models/set';
 
 declare var overwolf: any;
 
@@ -16,7 +16,7 @@ declare var overwolf: any;
 				<img src="{{'/Files/assets/images/sets/' + _cardSet.id + '.png'}}" class="set-logo" />
 				<span class="text set-name" *ngIf="_displayName">{{_cardSet.name}}</span>
 			</div>
-			<span class="cards-collected">{{_cardSet.ownedLimitCollectibleCards}}/{{_cardSet.numberOfLimitCollectibleCards()}}</span>
+			<span class="cards-collected">{{_cardSet.ownedLimitCollectibleCards}}/{{collectibleLimit()}}</span>
 			<div class="frame complete-simple" *ngIf="isSimpleComplete() && !isPremiumComplete()">
 				<i class="i-15 pale-gold-theme corner bottom-left">
 					<svg class="svg-icon-fill">
@@ -94,10 +94,14 @@ export class SetComponent {
 	}
 
 	private isSimpleComplete() {
-		return this._cardSet.ownedLimitCollectibleCards == this._cardSet.numberOfLimitCollectibleCards()
+		return this._cardSet.ownedLimitCollectibleCards == Set.numberOfLimitCollectibleCards(this._cardSet)
 	}
 
 	private isPremiumComplete() {
-		return this._cardSet.ownedLimitCollectiblePremiumCards == this._cardSet.numberOfLimitCollectibleCards()
+		return this._cardSet.ownedLimitCollectiblePremiumCards == Set.numberOfLimitCollectibleCards(this._cardSet)
+	}
+
+	private collectibleLimit() {
+		return Set.numberOfLimitCollectibleCards(this._cardSet);
 	}
 }

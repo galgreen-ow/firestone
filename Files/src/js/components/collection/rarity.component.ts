@@ -17,7 +17,7 @@ declare var overwolf: any;
 		<div *ngIf="cardSet && rarity" class="rarity-container">
 			<div class="rarity-progress" (click)="toggleShowMissingCards()">
 				<img src="{{'/Files/assets/images/rarity-' + rarity.toLowerCase() + '.png'}}" class="rarity" title="{{rarity}}" />
-				<span class="rarity-progress-info">{{rarity}}: {{cardSet.ownedForRarity(rarity)}} / {{cardSet.totalForRarity(rarity)}}</span>
+				<span class="rarity-progress-info">{{rarity}}: {{Set.ownedForRarity(cardSet, rarity)}} / {{Set.totalForRarity(cardSet, rarity)}}</span>
 			</div>
 		</div>
 	`,
